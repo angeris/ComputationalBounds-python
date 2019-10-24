@@ -6,7 +6,7 @@ from numpy import linalg
 from scipy import sparse
 
 def generate_lower_bounds(z_hat, weights, A, b, t_max, idx_constrained=None,
-                          suggested_design_params=True, eps=1e-8, verbose=True):
+                          suggested_design_params=True, eps=1e-8, verbose=True, solver="ECOS"):
     assert A.shape[0] == b.shape[0] and b.shape[0] == t_max.shape[0]
     assert np.all(t_max >= 0)
 
@@ -40,7 +40,7 @@ def generate_lower_bounds(z_hat, weights, A, b, t_max, idx_constrained=None,
         
     prob = cp.Problem(cp.Maximize(dual_obj), constraints)
 
-    obj_value = prob.solve(verbose=verbose)
+    obj_value = prob.solve(solver=solver, verbose=verbose)
 
     if not suggested_design_params:
         return obj_value, nu.value

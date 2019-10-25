@@ -22,21 +22,28 @@ def generate_lower_bounds(z_hat, weights, A, b, t_max, idx_constrained=None,
     constraints = []
     dual_obj = - nu @ b + .5 * linalg.norm(weights * z_hat) ** 2
 
-    # Could all be vectorized, but most time is spent solving the problem anyways.
+    ATnu = A.T @ nu # done to ensure sparse matrix-vector multiplication
+
+    if verbose:
+        print("Constructing problem.")
+
     for S_k in idx_constrained:
         max_left_accumulate = 0
         max_right_accumulate = 0
         for j in S_k:
             if abs(weights[j]) <= eps:
-                constraints.append(A[j,:] @ nu == 0)
-                constraints.append(A[j,:] @ nu + nu[j] * t_max == 0)
+                constraints.append(ATnu[j] == 0)
+                constraints.append(ATnu[j] + nu[j] * t_max == 0)
             else:
                 w2 = weights[j] ** 2
-                max_left_accumulate += cp.square(A[:,j].T @ nu - w2 * z_hat[j]) / w2
+                max_left_accumulate += cp.square(ATnu[j] - w2 * z_hat[j]) / w2
                 if t_max[j] > eps:
-                    max_right_accumulate += cp.square(A[:,j].T @ nu + t_max[j] * nu[j] - w2 * z_hat[j]) / w2
+                    max_right_accumulate += cp.square(ATnu[j] + t_max[j] * nu[j] - w2 * z_hat[j]) / w2
 
         dual_obj += -.5 * cp.maximum(max_left_accumulate, max_right_accumulate)
+        
+    if verbose:
+        print("Problem construction finished.")
         
     prob = cp.Problem(cp.Maximize(dual_obj), constraints)
 

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from computational_bounds import generate_lower_bounds, complex_to_real, real_to_complex_design
 
 # Test in the real case
-n = 100
+n = 1000
 
 weights = np.ones(n)
 A = sparse.diags([np.ones(n-1), -2 * np.ones(n), np.ones(n-1)], [-1, 0, 1]).tocsc()
